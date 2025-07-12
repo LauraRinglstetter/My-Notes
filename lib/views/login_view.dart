@@ -1,5 +1,6 @@
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firstapp/constants/routes.dart';
+import 'package:firstapp/utilities/show_error_dialog.dart';
 import 'package:flutter/material.dart';
 import 'dart:developer' as devtools show log;
 
@@ -67,10 +68,22 @@ class _LoginViewState extends State<LoginView> {
                   );
                 } on FirebaseAuthException catch (e) {
                     if (e.code == 'invalid-credential') {
-                      devtools.log('User not found');
+                      await showErrorDialog(
+                        context, 
+                        'Invalid credentials',
+                      );
+                    } else {
+                      await showErrorDialog(
+                        context, 
+                        'Error: ${e.code}',
+                      );
                     }
-                }
-                    
+                }  catch (e) {
+                  await showErrorDialog(
+                    context, 
+                    e.toString(),
+                  );
+                }      
               },
               child: const Text('Login'),
           ),
