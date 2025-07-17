@@ -37,6 +37,7 @@ class NotesListView extends StatelessWidget {
               final shouldDelete = await showDeleteDialog(context);
               if (shouldDelete) {
                 onDeleteNote(note);
+                
               }
             },
             icon: const Icon(Icons.delete),
