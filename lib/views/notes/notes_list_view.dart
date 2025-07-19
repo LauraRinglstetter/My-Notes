@@ -8,11 +8,13 @@ class NotesListView extends StatelessWidget {
   final Iterable<CloudNote> notes;
   final NoteCallback onDeleteNote;
   final NoteCallback onTap;
+  final String currentUserId;
 
   const NotesListView({
     required this.notes,
     required this.onDeleteNote,
     required this.onTap,
+    required this.currentUserId,
     super.key
   });
 
