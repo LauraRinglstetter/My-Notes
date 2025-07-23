@@ -1,34 +1,42 @@
 import 'package:flutter/material.dart';
 
-Future<String?> showShareNoteDialog(BuildContext context) {
-  final TextEditingController emailController = TextEditingController();
+typedef ShareNoteCallback = Future<void> Function(String email);
 
-  return showDialog<String>(
+Future<void> showShareNoteDialog({
+  required BuildContext context,
+  required ShareNoteCallback onShare,
+}) {
+  final controller = TextEditingController();
+
+  return showDialog(
     context: context,
-    builder: (context) {
-      return AlertDialog(
-        title: const Text('Mit wem möchtest du diese Notiz teilen?'),
-        content: TextField(
-          controller: emailController,
-          decoration: const InputDecoration(
-            labelText: 'E-Mail-Adresse',
-          ),
-          keyboardType: TextInputType.emailAddress,
+    builder: (context) => AlertDialog(
+      title: const Text('Notiz teilen'),
+      content: TextField(
+        controller: controller,
+        keyboardType: TextInputType.emailAddress,
+        decoration: const InputDecoration(
+          hintText: 'E-Mail-Adresse eingeben',
         ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.of(context).pop(null),
-            child: const Text('Abbrechen'),
-          ),
-          TextButton(
-            onPressed: () {
-              final email = emailController.text.trim();
-              Navigator.of(context).pop(email.isEmpty ? null : email);
-            },
-            child: const Text('Teilen'),
-          ),
-        ],
-      );
-    },
+      ),
+      actions: [
+        TextButton(
+          onPressed: () {
+            Navigator.of(context).pop(); // Dialog schließen
+          },
+          child: const Text('Abbrechen'),
+        ),
+        TextButton(
+          onPressed: () async {
+            final email = controller.text.trim();
+            if (email.isNotEmpty) {
+              await onShare(email);
+              Navigator.of(context).pop(); // Nach dem Teilen schließen
+            }
+          },
+          child: const Text('Teilen'),
+        ),
+      ],
+    ),
   );
 }

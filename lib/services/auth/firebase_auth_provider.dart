@@ -3,6 +3,7 @@ import 'package:firstapp/firebase_options.dart';
 import 'package:firstapp/services/auth/auth_user.dart';
 import 'package:firstapp/services/auth/auth_provider.dart';
 import 'package:firstapp/services/auth/auth_exceptions.dart';
+import 'package:cloud_firestore/cloud_firestore.dart'; // ← NEU
 
 import 'package:firebase_auth/firebase_auth.dart' show FirebaseAuth, FirebaseAuthException;
 
@@ -15,16 +16,23 @@ class FirebaseAuthProvider implements AuthProvider {
   }) async {
 
     try {
-      await FirebaseAuth.instance.createUserWithEmailAndPassword(
-        email: email, 
-        password: password
-      );
-      final user = currentUser;
-      if (user != null) {
-        return user;
-      } else {
-        throw UserNotLogginInAuthException();
-      }
+      final userCredential = await FirebaseAuth.instance.createUserWithEmailAndPassword(
+      email: email,
+      password: password,
+    );
+
+    final firebaseUser = userCredential.user;
+    if (firebaseUser != null) {
+      // E-Mail in Firestore speichern:
+      await FirebaseFirestore.instance.collection('users').doc(firebaseUser.uid).set({
+        'email': firebaseUser.email,
+      });
+
+      return AuthUser.fromFirebase(firebaseUser);
+    } else {
+      throw UserNotLogginInAuthException();
+    }
+
     } on FirebaseAuthException catch(e) {
       if (e.code == 'weak-password') {
         throw WeakPasswordAuthException();

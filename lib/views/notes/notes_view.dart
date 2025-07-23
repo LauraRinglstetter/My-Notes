@@ -26,6 +26,9 @@ class _NotesViewState extends State<NotesView> {
 
   @override
   Widget build(BuildContext context) {
+    final user = AuthService.firebase().currentUser!;
+    final userEmail = user.email;
+    final userId = user.id;
     return Scaffold(
       appBar: AppBar (
         title: const Text('Your Notes'),
@@ -63,7 +66,10 @@ class _NotesViewState extends State<NotesView> {
         ],
       ),
       body: StreamBuilder (
-        stream: _notesService.allNotes(ownerUserId: userId),
+        stream: _notesService.allNotes(
+          userId: userId,
+          userEmail: userEmail,
+        ),
         builder: (context, snapshot) {
           switch (snapshot.connectionState) {       
             case ConnectionState.waiting:

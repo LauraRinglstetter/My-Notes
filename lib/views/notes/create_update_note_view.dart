@@ -4,7 +4,8 @@ import 'package:firstapp/utilities/generics/get_arguments.dart';
 import 'package:firstapp/services/cloud/cloud_note.dart';
 import 'package:firstapp/services/cloud/firebase_cloud_storage.dart';
 import 'package:flutter/material.dart';
-import 'package:share_plus/share_plus.dart';
+import 'package:firstapp/utilities/dialogs/share_note_dialog.dart';
+
 
 class CreateUpdateNoteView extends StatefulWidget {
   const CreateUpdateNoteView({super.key});
@@ -25,19 +26,19 @@ class _CreateUpdateNoteViewState extends State<CreateUpdateNoteView> {
     super.initState();
   }
 
-  void _textControllerListener() async {
-    final note = _note;
-    if(note == null) {
-      return;
-    }
-    final text = _textController.text;
-    await _notesService.updateNote(documentId: note.documentId, text: text);
-  }
+  // void _textControllerListener() async {
+  //   final note = _note;
+  //   if(note == null) {
+  //     return;
+  //   }
+  //   final text = _textController.text;
+  //   await _notesService.updateNote(documentId: note.documentId, text: text);
+  // }
 
-  void _setupTextControllerListener() {
-    _textController.removeListener(_textControllerListener);
-    _textController.addListener(_textControllerListener);
-  }
+  // void _setupTextControllerListener() {
+  //   _textController.removeListener(_textControllerListener);
+  //   _textController.addListener(_textControllerListener);
+  // }
 
   Future<CloudNote> createOrGetExistingNote(BuildContext context) async {
 
@@ -46,7 +47,6 @@ class _CreateUpdateNoteViewState extends State<CreateUpdateNoteView> {
     //if the note already exists and the user is updating this note:
     if(widgetNote != null) {
       _note = widgetNote;
-      _textController.text = widgetNote.text;
       return widgetNote;
     }
 
@@ -57,29 +57,30 @@ class _CreateUpdateNoteViewState extends State<CreateUpdateNoteView> {
     final currentUser = AuthService.firebase().currentUser!;
     final userId = currentUser.id;
     final newNote = await _notesService.createNewNote(ownerUserId: userId);
+    print('✅ Neue Notiz erstellt: ${newNote.documentId}');
     _note = newNote;
     return newNote;
   }
 
-  void _deleteNoteIfTextIsEmpty() {
-    final note = _note;
-    if (_textController.text.isEmpty && note != null) {
-      _notesService.deleteNote(documentId: note.documentId);
-    }
-  }
+  // void _deleteNoteIfTextIsEmpty() {
+  //   final note = _note;
+  //   if (_textController.text.isEmpty && note != null) {
+  //     _notesService.deleteNote(documentId: note.documentId);
+  //   }
+  // }
 
-  void _saveNoteIfTextNotEmpty() async {
-    final note = _note;
-    final text = _textController.text;
-    if(note != null && text.isNotEmpty) {
-      await _notesService.updateNote(documentId: note.documentId, text: text);
-    }
-  }
+  // void _saveNoteIfTextNotEmpty() async {
+  //   final note = _note;
+  //   final text = _textController.text;
+  //   if(note != null && text.isNotEmpty) {
+  //     await _notesService.updateNote(documentId: note.documentId, text: text);
+  //   }
+  // }
 
   @override
   void dispose() {
-    _deleteNoteIfTextIsEmpty();
-    _saveNoteIfTextNotEmpty();
+    //_deleteNoteIfTextIsEmpty();
+    //_saveNoteIfTextNotEmpty();
     _textController.dispose();
     super.dispose();
   }
@@ -92,12 +93,56 @@ class _CreateUpdateNoteViewState extends State<CreateUpdateNoteView> {
         actions: [
           IconButton(
             onPressed: () async {
-              final text = _textController.text;
-              if(_note == null || text.isEmpty) {
+              final note = _note;
+              //final text = _textController.text;
+
+              if(_note == null || _note!.content.isEmpty) {
                 await showCannotShareEmptyNoteDialog(context);
-              } else {
-                SharePlus.instance.share(ShareParams(text: text));
+                return;
               }
+              await showShareNoteDialog(
+                context: context,
+                onShare: (email) async {
+                  try {
+                    final exists = await _notesService.userExists(email);
+                    if (!exists) {
+                      if (mounted) {
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          const SnackBar(
+                            content: Text('Diese E-Mail ist keinem registrierten Nutzer zugeordnet'),
+                            backgroundColor: Colors.red,
+                          ),
+                        );
+                      }
+                      return;
+                    }
+
+                    await _notesService.shareNote(
+                      noteId: note!.documentId,
+                      emailToShareWith: email,
+                    );
+
+                    if (mounted) {
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        SnackBar(
+                          content: Text('Notiz erfolgreich geteilt mit $email'),
+                          backgroundColor: Colors.green,
+                        ),
+                      );
+                    }
+                  } catch (e) {
+                    if (mounted) {
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        const SnackBar(
+                          content: Text('Fehler beim Teilen der Notiz'),
+                          backgroundColor: Colors.red,
+                        ),
+                      );
+                    }
+                  }
+                }
+
+              );
             }, 
             icon: const Icon(Icons.share))
         ]
@@ -107,17 +152,78 @@ class _CreateUpdateNoteViewState extends State<CreateUpdateNoteView> {
         builder: (context, snapshot) {
           switch (snapshot.connectionState) {
             case ConnectionState.done:
-              _setupTextControllerListener();
-              return TextField(
-                controller: _textController,
-                keyboardType: TextInputType.multiline,
-                maxLines: null,
-                decoration: const InputDecoration(
-                  hintText: 'Start typing your note here...'
-                ),
+              //_setupTextControllerListener();
+
+              final note = _note!;
+              final paragraphs = note.content;
+
+              return Column(
+                children: [
+                  // Liste der bisherigen Absätze
+                  Expanded(
+                    child: ListView.builder(
+                      itemCount: paragraphs.length,
+                      itemBuilder: (context, index) {
+                        final p = paragraphs[index];
+                        return ListTile(
+                          title: Text(p.text),
+                          subtitle: Text('${p.author} • ${p.timestamp.toLocal()}'),
+                        );
+                      },
+                    ),
+                  ),
+
+                  // Eingabefeld + Button
+                  Padding(
+                    padding: const EdgeInsets.all(12.0),
+                    child: Column(
+                      children: [
+                        TextField(
+                          controller: _textController,
+                          keyboardType: TextInputType.multiline,
+                          minLines: 2,
+                          maxLines: 5,
+                          decoration: const InputDecoration(
+                            hintText: 'Neuen Absatz schreiben...',
+                            border: OutlineInputBorder(),
+                          ),
+                        ),
+                        const SizedBox(height: 8),
+                        ElevatedButton(
+                          onPressed: () async {
+                            final text = _textController.text.trim();
+                            if (text.isEmpty) return;
+
+                            final user = AuthService.firebase().currentUser!;
+                            final paragraph = NoteParagraph(
+                              author: user.email,
+                              text: text,
+                              timestamp: DateTime.now(),
+                            );
+
+                            await _notesService.addParagraphToNote(
+                              noteId: note.documentId,
+                              paragraph: paragraph,
+                            );
+
+                            _textController.clear();
+
+                            // Notiz aktualisiert neu laden
+                            final updatedNoteSnapshot = await _notesService.notes.doc(note.documentId).get();
+                            setState(() {
+                              _note = CloudNote.fromDocumentSnapshot(updatedNoteSnapshot);
+                            });
+                          },
+                          child: const Text('Absatz hinzufügen'),
+                          
+                        )
+                      ],
+                    ),
+                  ),
+                ],
               );
-            default:
-            return const CircularProgressIndicator();
+              default:
+                return const Center(child: CircularProgressIndicator());
           }
         },
       ),

@@ -29,11 +29,17 @@ class NotesListView extends StatelessWidget {
             onTap(note);
           },
           title: Text(
-            note.text,
+            note.content.isNotEmpty ? note.content.last.text : '[Keine Inhalte]',
             maxLines: 1,
             softWrap: true,
             overflow: TextOverflow.ellipsis,
           ),
+          subtitle: note.sharedWith.isNotEmpty
+            ? Text(
+                'Geteilt mit: ${note.sharedWith.join(', ')}',
+                style: TextStyle(fontSize: 12, color: Colors.grey[600]),
+              )
+            : null,
           trailing: IconButton(
             onPressed: () async {
               final shouldDelete = await showDeleteDialog(context);
