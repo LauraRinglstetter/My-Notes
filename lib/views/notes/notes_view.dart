@@ -31,7 +31,7 @@ class _NotesViewState extends State<NotesView> {
     final userId = user.id;
     return Scaffold(
       appBar: AppBar (
-        title: const Text('Your Notes'),
+        title: const Text('Deine Notizen'),
         actions: [
           IconButton(
             onPressed: () {

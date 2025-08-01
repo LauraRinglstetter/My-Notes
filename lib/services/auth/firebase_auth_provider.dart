@@ -4,7 +4,6 @@ import 'package:firstapp/services/auth/auth_user.dart';
 import 'package:firstapp/services/auth/auth_provider.dart';
 import 'package:firstapp/services/auth/auth_exceptions.dart';
 import 'package:cloud_firestore/cloud_firestore.dart'; // ← NEU
-
 import 'package:firebase_auth/firebase_auth.dart' show FirebaseAuth, FirebaseAuthException;
 
 

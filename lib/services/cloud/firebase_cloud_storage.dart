@@ -5,10 +5,9 @@ import 'package:firstapp/services/cloud/cloud_storage_exceptions.dart';
 
 //Singleton-Klasse
 class FirebaseCloudStorage {
-
-  //Firestore-Collection called 'notes':
+  //Firestore-Collection 'notes':
   final notes = FirebaseFirestore.instance.collection('notes');
-
+  
   Future<void> deleteNote({
     required String documentId,
   }) async {
@@ -18,23 +17,8 @@ class FirebaseCloudStorage {
         throw CouldNotDeleteNoteException();
     }
   }
-
-  // Future<void> updateNote({
-  //   required String documentId,
-  //   required String text,
-  // }) async {
-  //   try {
-  //     notes.doc(documentId).update({textFieldName: text});
-  //   } catch (e) {
-  //       throw CouldNotUpdateNoteException();
-  //   }
-  // }
-
   //gibt Live-Stream aller Notizen zurück die Nutzer erstellt hat oder die mit ihm geteilt wurden
-  Stream<Iterable<CloudNote>> allNotes({
-    required String userId,
-    required String userEmail,
-  }) {
+  Stream<Iterable<CloudNote>> allNotes({required String userId, required String userEmail,}) {
     return notes.snapshots().map((snapshot) {
       return snapshot.docs
           .map((doc) => CloudNote.fromSnapshot(doc))
@@ -42,7 +26,6 @@ class FirebaseCloudStorage {
               note.ownerUserId == userId || note.sharedWith.contains(userEmail));
     });
   }
-
   //holt alle Notizen eines bestimmten Nutzers auf der Firestore-Datenbank, 
   //gefiltert nach ownerUserId und gibt sie als Liste von CloudNote-Ojekten zurück
   Future<Iterable<CloudNote>> getNotes({required String ownerUserId}) async {
@@ -60,7 +43,6 @@ class FirebaseCloudStorage {
       throw CouldNotGetAllNotesException();
     }
   }
-
   Future<CloudNote> createNewNote({required String ownerUserId}) async {
     final document = await notes.add({
       ownerUserIdFieldName: ownerUserId,
@@ -68,7 +50,6 @@ class FirebaseCloudStorage {
       contentFieldName: [],
     });
     final fetchedNote = await document.get();
-    print('✅ Firestore-Dokument erstellt: ${document.id}');
     return CloudNote(
       documentId: fetchedNote.id, 
       ownerUserId: ownerUserId,  
@@ -76,7 +57,6 @@ class FirebaseCloudStorage {
       content: [],
     );
   }
-
   Future<void> addParagraphToNote({
     required String noteId,
     required NoteParagraph paragraph,
@@ -86,7 +66,6 @@ class FirebaseCloudStorage {
       contentFieldName: FieldValue.arrayUnion([paragraph.toMap()])
     });
   }
-
   //Notizen können geteilt werden
   Future<void> shareNote({
     required String noteId,
@@ -111,8 +90,6 @@ class FirebaseCloudStorage {
 
     return query.docs.isNotEmpty;
   }
-
-
 
   //erstellt eine einzige Instanz dieser Klasse, die global verwendet werden kann
   static final FirebaseCloudStorage _shared = 
