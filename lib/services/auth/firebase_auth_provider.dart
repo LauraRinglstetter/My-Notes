@@ -108,8 +108,12 @@ class FirebaseAuthProvider implements AuthProvider {
   
   @override
   Future<void> initialize() async {
-      await Firebase.initializeApp(
-        options: DefaultFirebaseOptions.currentPlatform,
-      );
+    await Firebase.initializeApp(
+      options: DefaultFirebaseOptions.currentPlatform,
+    );
+
+    FirebaseFirestore.instance.settings = const Settings(
+      persistenceEnabled: true,
+    );
   }
 }

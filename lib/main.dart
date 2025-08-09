@@ -15,7 +15,7 @@ void main() {
       title: 'Client-Server-Architektur',
       theme: ThemeData(
        
-        colorScheme: ColorScheme.fromSeed(seedColor: Colors.deepPurple),
+        colorScheme: ColorScheme.fromSeed(seedColor: const Color.fromARGB(255, 105, 49, 201)),
       ),
       home: const HomePage(),
       routes: {
