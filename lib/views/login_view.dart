@@ -1,9 +1,7 @@
 import 'package:firstapp/constants/routes.dart';
-import 'package:firstapp/services/auth/auth_exceptions.dart';
 import 'package:firstapp/services/auth/auth_service.dart';
 import 'package:firstapp/utilities/dialogs/error_dialog.dart';
 import 'package:flutter/material.dart';
-
 
 class LoginView extends StatefulWidget {
   const LoginView({super.key});
@@ -64,32 +62,17 @@ class _LoginViewState extends State<LoginView> {
                     password: password,
                   );
                   final user = AuthService.firebase().currentUser;
-                  if (user?.isEmailVerified ?? false) {
+                  if (user != null) {
                     Navigator.of(context).pushNamedAndRemoveUntil(
                       notesRoute, 
                       (route) => false,
                     );
-                  } else {
-                    Navigator.of(context).pushNamedAndRemoveUntil(
-                      verifyEmailRoute, 
-                      (route) => false,
-                    );
-                  }
-                } on UserNotFoundAuthException {
+                  } 
+                } catch (_) {
                   await showErrorDialog(
                     context, 
-                    'Invalid credentials',
+                    'Failed to login',
                   );
-                } on InvalidCredentialsAuthException {
-                  await showErrorDialog(
-                    context, 
-                    'Invalid credentials',
-                  );
-                } on GenericAuthException {
-                    await showErrorDialog(
-                      context, 
-                      'Authentication error',
-                    );
                 }    
               },
               child: const Text('Login'),

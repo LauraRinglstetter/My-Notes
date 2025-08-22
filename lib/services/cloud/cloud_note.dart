@@ -50,7 +50,6 @@ class CloudNote {
       content: parsedContent,
     );
   }
-
 }
 
 //damit erkennbar, wer was und wann geschrieben hat, definiert einen einzelnen Absatz:

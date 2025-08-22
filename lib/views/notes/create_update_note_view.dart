@@ -26,25 +26,10 @@ class _CreateUpdateNoteViewState extends State<CreateUpdateNoteView> {
     super.initState();
   }
 
-  // void _textControllerListener() async {
-  //   final note = _note;
-  //   if(note == null) {
-  //     return;
-  //   }
-  //   final text = _textController.text;
-  //   await _notesService.updateNote(documentId: note.documentId, text: text);
-  // }
-
-  // void _setupTextControllerListener() {
-  //   _textController.removeListener(_textControllerListener);
-  //   _textController.addListener(_textControllerListener);
-  // }
-
   Future<CloudNote> createOrGetExistingNote(BuildContext context) async {
 
     final widgetNote = context.getArgument<CloudNote>();
 
-    //if the note already exists and the user is updating this note:
     if(widgetNote != null) {
       _note = widgetNote;
       return widgetNote;
@@ -61,25 +46,8 @@ class _CreateUpdateNoteViewState extends State<CreateUpdateNoteView> {
     return newNote;
   }
 
-  // void _deleteNoteIfTextIsEmpty() {
-  //   final note = _note;
-  //   if (_textController.text.isEmpty && note != null) {
-  //     _notesService.deleteNote(documentId: note.documentId);
-  //   }
-  // }
-
-  // void _saveNoteIfTextNotEmpty() async {
-  //   final note = _note;
-  //   final text = _textController.text;
-  //   if(note != null && text.isNotEmpty) {
-  //     await _notesService.updateNote(documentId: note.documentId, text: text);
-  //   }
-  // }
-
   @override
   void dispose() {
-    //_deleteNoteIfTextIsEmpty();
-    //_saveNoteIfTextNotEmpty();
     _textController.dispose();
     super.dispose();
   }
@@ -93,7 +61,6 @@ class _CreateUpdateNoteViewState extends State<CreateUpdateNoteView> {
           IconButton(
             onPressed: () async {
               final note = _note;
-              //final text = _textController.text;
 
               if(_note == null || _note!.content.isEmpty) {
                 await showCannotShareEmptyNoteDialog(context);
